@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do you love me?</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #ffe6e6; 
+            overflow: hidden; 
+            margin: 0;
+        }
+        h1 {
+            color: #d63384;
+            font-size: 3rem;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .buttons {
+            display: flex;
+            gap: 20px;
+            position: relative; 
+            width: 250px;
+            height: 60px;
+            justify-content: center;
+            align-items: center;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 25px; 
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.1s ease; 
+        }
+        #yesBtn {
+            background-color: #e63946; 
+            color: white;
+            position: absolute;
+            left: 0;
+        }
+        #noBtn {
+            background-color: #6c757d; 
+            color: white;
+            position: absolute;
+            right: 0;
+            z-index: 999;
+        }
+        /* Heart Confetti Styling */
+        .heart-particle {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatUp 2.5s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(0);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-20vh) translateX(var(--drift)) scale(1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Do you love me?</h1>
+    
+    <div class="buttons">
+        <button id="yesBtn" onclick="sayYes()">YES</button>
+        <button id="noBtn">NO</button>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+
+        function moveButton() {
+            const randomX = Math.floor(Math.random() * (window.innerWidth - 120));
+            const randomY = Math.floor(Math.random() * (window.innerHeight - 60));
+            
+            noBtn.style.position = 'fixed'; 
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+
+        noBtn.addEventListener('mouseover', moveButton);
+        noBtn.addEventListener('touchstart', moveButton);
+
+        function sayYes() {
+            // Trigger the celebration explosion
+            createHeartsCelebration();
+            
+            // Short delay before alert so you can see the hearts start floating
+            setTimeout(() => {
+                alert("Hehehe I love you too! ❤️");
+            }, 300);
+        }
+
+        function createHeartsCelebration() {
+            const totalHearts = 50; // Total count of hearts that explode upward
+            const heartEmojis = ['❤️', '💖', '💘', '💝', '💕'];
+
+            for (let i = 0; i < totalHearts; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart-particle');
+                
+                // Pick a random heart style
+                heart.innerText = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                
+                // Randomize positions across the bottom edge of the screen
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.bottom = '-50px';
+                
+                // Add varied delay and custom horizontal sway (drift) properties
+                heart.style.animationDelay = Math.random() * 0.5 + 's';
+                heart.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+                
+                document.body.appendChild(heart);
+
+                // Clean up elements out of HTML once animation ends
+                setTimeout(() => {
+                    heart.remove();
+                }, 3000);
+            }
+        }
+    </script>
+
+</body>
+</html>
+
+</body>
+</html>
