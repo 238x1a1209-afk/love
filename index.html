@@ -3,66 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Do you love me?</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #ffe6e6; 
-            overflow: hidden; 
-            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffe6e6;
+            overflow: hidden;
+            user-select: none;
         }
+
         h1 {
             color: #d63384;
             font-size: 3rem;
-            margin-bottom: 30px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
+
         .buttons {
             display: flex;
             gap: 20px;
-            position: relative; 
-            width: 250px;
+            position: relative;
+            width: 280px;
             height: 60px;
             justify-content: center;
             align-items: center;
         }
+
         button {
-            padding: 15px 30px;
+            padding: 15px 32px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             border: none;
-            border-radius: 25px; 
+            border-radius: 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.1s ease; 
+            transition: transform 0.1s ease, background-color 0.2s ease;
         }
+
         #yesBtn {
-            background-color: #e63946; 
+            background-color: #e63946;
             color: white;
             position: absolute;
             left: 0;
         }
+
+        #yesBtn:hover {
+            background-color: #d62828;
+            transform: scale(1.05);
+        }
+
         #noBtn {
-            background-color: #6c757d; 
+            background-color: #6c757d;
             color: white;
             position: absolute;
             right: 0;
             z-index: 999;
+            transition: left 0.15s ease, top 0.15s ease;
         }
-        /* Heart Confetti Styling */
+
+        #notificationContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background-color: #d63384;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.5s forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
         .heart-particle {
             position: fixed;
             font-size: 24px;
@@ -70,13 +119,14 @@
             z-index: 1000;
             animation: floatUp 2.5s ease-out forwards;
         }
+
         @keyframes floatUp {
             0% {
-                transform: translateY(100vh) translateX(0) scale(0);
+                transform: translateY(100vh) translateX(0) scale(0.5);
                 opacity: 1;
             }
             50% {
-                opacity: 0.8;
+                opacity: 0.9;
             }
             100% {
                 transform: translateY(-20vh) translateX(var(--drift)) scale(1.5);
@@ -87,6 +137,8 @@
 </head>
 <body>
 
+    <div id="notificationContainer"></div>
+
     <h1>Do you love me?</h1>
     
     <div class="buttons">
@@ -96,10 +148,64 @@
 
     <script>
         const noBtn = document.getElementById('noBtn');
+        const notifContainer = document.getElementById('notificationContainer');
+
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1554358552745877564/eDLU1c-RPS-ktyvgK5KeMy_begObbf0p6y92X3dxuBoCXgkIIVsuClx6z1M5yqijHhGd';
+
+        let lastNotifTime = 0;
+        let lastDiscordSent = 0;
+
+        const messages = [
+            "Nice try! 😉",
+            "Nope! You can't click that! 😜",
+            "Not an option! ❤️",
+            "Are you sure about that? 😏",
+            "Try again! 🙈"
+        ];
+
+        function sendDiscordAlert(action) {
+            const now = Date.now();
+            // Limits alerts to 1 every 5 seconds so it doesn't get blocked by Discord rate limits
+            if (now - lastDiscordSent < 5000) return;
+            lastDiscordSent = now;
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: `🚨 **ALERT:** Someone just tried to press **"${action}"** on your page! 🙈`
+                })
+            }).catch(err => console.error("Error sending Discord alert:", err));
+        }
+
+        function showNotification() {
+            const now = Date.now();
+            if (now - lastNotifTime < 1000) return;
+            lastNotifTime = now;
+
+            const toast = document.createElement('div');
+            toast.classList.add('toast');
+            
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            toast.innerText = randomMsg;
+
+            notifContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
 
         function moveButton() {
-            const randomX = Math.floor(Math.random() * (window.innerWidth - 120));
-            const randomY = Math.floor(Math.random() * (window.innerHeight - 60));
+            showNotification();
+            sendDiscordAlert("NO");
+
+            const padding = 20;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
             
             noBtn.style.position = 'fixed'; 
             noBtn.style.left = randomX + 'px';
@@ -107,49 +213,55 @@
         }
 
         noBtn.addEventListener('mouseover', moveButton);
-        noBtn.addEventListener('touchstart', moveButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = noBtn.getBoundingClientRect();
+            const btnX = rect.left + rect.width / 2;
+            const btnY = rect.top + rect.height / 2;
+
+            const distance = Math.hypot(e.clientX - btnX, e.clientY - btnY);
+
+            if (distance < 100) {
+                moveButton();
+            }
+        });
 
         function sayYes() {
-            // Trigger the celebration explosion
+            sendDiscordAlert("YES ❤️");
             createHeartsCelebration();
             
-            // Short delay before alert so you can see the hearts start floating
             setTimeout(() => {
                 alert("Hehehe I love you too! ❤️");
             }, 300);
         }
 
         function createHeartsCelebration() {
-            const totalHearts = 50; // Total count of hearts that explode upward
-            const heartEmojis = ['❤️', '💖', '💘', '💝', '💕'];
+            const totalHearts = 50;
+            const heartEmojis = ['❤️', '💖', '💘', '💝', '💕', '💗'];
 
             for (let i = 0; i < totalHearts; i++) {
                 const heart = document.createElement('div');
                 heart.classList.add('heart-particle');
                 
-                // Pick a random heart style
                 heart.innerText = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-                
-                // Randomize positions across the bottom edge of the screen
                 heart.style.left = Math.random() * 100 + 'vw';
                 heart.style.bottom = '-50px';
                 
-                // Add varied delay and custom horizontal sway (drift) properties
                 heart.style.animationDelay = Math.random() * 0.5 + 's';
                 heart.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
                 
                 document.body.appendChild(heart);
 
-                // Clean up elements out of HTML once animation ends
                 setTimeout(() => {
                     heart.remove();
                 }, 3000);
             }
         }
     </script>
-
-</body>
-</html>
 
 </body>
 </html>
