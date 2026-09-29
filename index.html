@@ -112,6 +112,87 @@
             }
         }
 
+        /* Letter Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .letter-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .letter-card {
+            transform: translateY(0);
+        }
+
+        .letter-card h2 {
+            color: #d63384;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .letter-card p {
+            color: #555;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+
+        .letter-card textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 2px solid #ffccd5;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+
+        .letter-card textarea:focus {
+            border-color: #d63384;
+        }
+
+        .letter-card .send-btn {
+            background-color: #e63946;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+        }
+
+        .letter-card .send-btn:hover {
+            background-color: #d62828;
+        }
+
         .heart-particle {
             position: fixed;
             font-size: 24px;
@@ -146,9 +227,20 @@
         <button id="noBtn">NO</button>
     </div>
 
+    <!-- Letter Popup Modal -->
+    <div id="letterModal" class="modal-overlay">
+        <div class="letter-card">
+            <h2>Write Me a Letter 💌</h2>
+            <p>Yay! I knew it! Leave me a sweet note below:</p>
+            <textarea id="letterInput" placeholder="Write your message here..."></textarea>
+            <button class="send-btn" onclick="sendLetter()">Send Letter 💌</button>
+        </div>
+    </div>
+
     <script>
         const noBtn = document.getElementById('noBtn');
         const notifContainer = document.getElementById('notificationContainer');
+        const letterModal = document.getElementById('letterModal');
 
         const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1554358552745877564/eDLU1c-RPS-ktyvgK5KeMy_begObbf0p6y92X3dxuBoCXgkIIVsuClx6z1M5yqijHhGd';
 
@@ -163,18 +255,19 @@
             "Try again! 🙈"
         ];
 
-        function sendDiscordAlert(action) {
+        function sendDiscordAlert(action, forceSend = false) {
             const now = Date.now();
-            // Limits alerts to 1 every 5 seconds so it doesn't get blocked by Discord rate limits
-            if (now - lastDiscordSent < 5000) return;
+            if (!forceSend && (now - lastDiscordSent < 5000)) return;
             lastDiscordSent = now;
+
+            const messageText = action === "YES" 
+                ? `🎉 **GREAT NEWS!** They clicked **"YES"**! ❤️🥰`
+                : `🚨 **ALERT:** Someone just tried to press **"${action}"** on your page! 🙈`;
 
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content: `🚨 **ALERT:** Someone just tried to press **"${action}"** on your page! 🙈`
-                })
+                body: JSON.stringify({ content: messageText })
             }).catch(err => console.error("Error sending Discord alert:", err));
         }
 
@@ -231,12 +324,33 @@
         });
 
         function sayYes() {
-            sendDiscordAlert("YES ❤️");
+            sendDiscordAlert("YES", true);
             createHeartsCelebration();
             
+            // Show the letter writing modal
             setTimeout(() => {
-                alert("Hehehe I love you too! ❤️");
-            }, 300);
+                letterModal.classList.add('active');
+            }, 600);
+        }
+
+        function sendLetter() {
+            const text = document.getElementById('letterInput').value.trim();
+            if (!text) {
+                alert("Please write a message before sending! ❤️");
+                return;
+            }
+
+            // Send letter content directly to your Discord webhook
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: `💌 **YOU RECEIVED A LOVE LETTER!** 💌\n>>> ${text}`
+                })
+            }).then(() => {
+                letterModal.classList.remove('active');
+                alert("Letter sent! Hehehe I love you too! ❤️");
+            }).catch(err => console.error("Error sending letter:", err));
         }
 
         function createHeartsCelebration() {
