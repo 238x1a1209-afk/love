@@ -84,7 +84,7 @@
         }
 
         .toast {
-            background-color: #d63384;
+            background-color: #d90429;
             color: white;
             padding: 12px 20px;
             border-radius: 12px;
@@ -193,9 +193,10 @@
             background-color: #d62828;
         }
 
-        .heart-particle {
+        /* Particles (Hearts & Angry Emojis) */
+        .particle {
             position: fixed;
-            font-size: 24px;
+            font-size: 28px;
             pointer-events: none;
             z-index: 1000;
             animation: floatUp 2.5s ease-out forwards;
@@ -203,14 +204,14 @@
 
         @keyframes floatUp {
             0% {
-                transform: translateY(100vh) translateX(0) scale(0.5);
+                transform: translateY(0) translateX(0) scale(0.6);
                 opacity: 1;
             }
             50% {
                 opacity: 0.9;
             }
             100% {
-                transform: translateY(-20vh) translateX(var(--drift)) scale(1.5);
+                transform: translateY(-120px) translateX(var(--drift)) scale(1.4);
                 opacity: 0;
             }
         }
@@ -248,11 +249,11 @@
         let lastDiscordSent = 0;
 
         const messages = [
-            "Nice try! 😉",
-            "Nope! You can't click that! 😜",
-            "Not an option! ❤️",
-            "Are you sure about that? 😏",
-            "Try again! 🙈"
+            "No, no, no! 😡",
+            "Stop trying to click that! 😤",
+            "Not an option! 🤬",
+            "Hey! Wrong button! 💢",
+            "No, no, no! Try again! 😡"
         ];
 
         function sendDiscordAlert(action, forceSend = false) {
@@ -273,7 +274,7 @@
 
         function showNotification() {
             const now = Date.now();
-            if (now - lastNotifTime < 1000) return;
+            if (now - lastNotifTime < 800) return;
             lastNotifTime = now;
 
             const toast = document.createElement('div');
@@ -289,8 +290,28 @@
             }, 3000);
         }
 
+        function spawnAngryEmojis() {
+            const angryEmojis = ['😡', '🤬', '😤', '💢', '👿'];
+            const rect = noBtn.getBoundingClientRect();
+
+            for (let i = 0; i < 4; i++) {
+                const emoji = document.createElement('div');
+                emoji.classList.add('particle');
+                emoji.innerText = angryEmojis[Math.floor(Math.random() * angryEmojis.length)];
+                
+                emoji.style.left = (rect.left + rect.width / 2 + (Math.random() * 40 - 20)) + 'px';
+                emoji.style.top = (rect.top + rect.height / 2) + 'px';
+                emoji.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
+
+                document.body.appendChild(emoji);
+
+                setTimeout(() => emoji.remove(), 2500);
+            }
+        }
+
         function moveButton() {
             showNotification();
+            spawnAngryEmojis();
             sendDiscordAlert("NO");
 
             const padding = 20;
@@ -327,7 +348,6 @@
             sendDiscordAlert("YES", true);
             createHeartsCelebration();
             
-            // Show the letter writing modal
             setTimeout(() => {
                 letterModal.classList.add('active');
             }, 600);
@@ -340,7 +360,6 @@
                 return;
             }
 
-            // Send letter content directly to your Discord webhook
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -359,20 +378,17 @@
 
             for (let i = 0; i < totalHearts; i++) {
                 const heart = document.createElement('div');
-                heart.classList.add('heart-particle');
+                heart.classList.add('particle');
                 
                 heart.innerText = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
                 heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.bottom = '-50px';
-                
+                heart.style.top = '100vh';
                 heart.style.animationDelay = Math.random() * 0.5 + 's';
                 heart.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
                 
                 document.body.appendChild(heart);
 
-                setTimeout(() => {
-                    heart.remove();
-                }, 3000);
+                setTimeout(() => heart.remove(), 3000);
             }
         }
     </script>
